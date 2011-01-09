@@ -110,8 +110,8 @@ class MinecraftBot:
         print ("DEBUG: Received Login Response packet.")
     #End of onLoginResponse
     
-    def onHandshake(self):
-        print ("DEBUG: Received Handshake packet.")
+    def onHandshake(self, token):
+        print ("DEBUG: Received Handshake packet.  token = %s"%token)
         print ("DEBUG: Sending Login Response packet.")
         self.protocol.send(p01LoginResponse(username))
     #End of onHandshake
@@ -265,14 +265,11 @@ class MinecraftProtocol(Protocol):
             elif packet_type == '\x01':
                 self.bot.onLoginResponse()
             elif packet_type == '\x02':
-                print ("DEBUG: Handling packet \x02", self.buffer)
                 self.buffer = self.buffer[1:]       # Advance Past ID
                 
-                print ("DEBUG: Handling packet \x02", self.buffer)
                 size = struct.unpack('>H', self.buffer[:2])
                 self.buffer = self.buffer[2:]       # Advance Past Size
                 
-                print ("DEBUG: Handling packet \x02", self.buffer)
                 token = struct.unpack('>%ds'%size, self.buffer)
                 self.buffer = self.buffer[size[0]:] # Advance Past String
                 
@@ -280,7 +277,6 @@ class MinecraftProtocol(Protocol):
             else:
                 print "CRIT:  Protocol error"
                 reactor.stop()
-            self.buffer = self.buffer[length:]
         else:
             print ('ERROR: Incomplete Packet: ', packet_type)
             reactor.stop()

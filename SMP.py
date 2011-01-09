@@ -7,6 +7,8 @@ import struct
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(sys.executable)))
 
+from packets import parse_packets
+
 import mechanize
 
 try:
@@ -100,18 +102,18 @@ class MinecraftBot:
         pass
     #End of __init__
     
-    def onPing(self):
+    def onPing(self, payload):
         print ("DEBUG: Received Keepalive packet.")
         print ("DEBUG: Sending Keepalive packet.")
         self.protocol.send(p00Keepalive())
     #End of onPing
     
-    def onLoginResponse(self):
+    def onLoginResponse(self, payload):
         print ("DEBUG: Received Login Response packet.")
     #End of onLoginResponse
     
-    def onHandshake(self, token):
-        print ("DEBUG: Received Handshake packet.  token = %s"%token)
+    def onHandshake(self, payload):
+        print ("DEBUG: Received Handshake packet.  payload = %s"%payload)
         print ("DEBUG: Sending Login Response packet.")
         self.protocol.send(p01LoginResponse(username))
     #End of onHandshake
@@ -238,50 +240,27 @@ class MinecraftProtocol(Protocol):
                      "\x82": 'sign update',             #IGNORE THIS
                      "\xFF": 'kick'
                      }
+
+        handlers[0] = self.bot.onPing
+    #    handlers[1] = self.bot.onLoginResponse
+    #    handlers[2] = self.bot.onHandshake
     #End of __init__
     
     def dataReceived(self, data):
         self.buffer += data
-        packet_type = self.buffer[0]
-        print ("DEBUG: Got packet: ", self.buffer[0])
-        print ("DEBUG: Total Data: ", self.buffer)
-        
-        while (len(self.buffer) and len(self.buffer) >= self.packet_length[packet_type]):
-            self.process_data()
-            if self.buffer:
-                packet_type = self.buffer[0]
-            #End if
-        #End while
-    #End of dataReceived
-    
-    def process_data(self):
-        packet_type = self.buffer[0]
-        length = self.packet_length[packet_type]
-        if len(self.buffer) >= length:
-            print ('Packet type: %s, Length: %s'%(self.StoC[packet_type],length))
-            if packet_type == '\x00':
-                self.buffer = self.buffer[1:]       # Advance Past ID
-                self.bot.onPing()
-            elif packet_type == '\x01':
-                self.bot.onLoginResponse()
-            elif packet_type == '\x02':
-                self.buffer = self.buffer[1:]       # Advance Past ID
-                
-                size = struct.unpack('>H', self.buffer[:2])
-                self.buffer = self.buffer[2:]       # Advance Past Size
-                
-                token = struct.unpack('>%ds'%size, self.buffer)
-                self.buffer = self.buffer[size[0]:] # Advance Past String
-                
-                self.bot.onHandshake(token[0])
+
+        packets, self.buffer = parse_packets(self.buffer)
+
+        for header, payload in packets:
+            if header in self.handlers:
+                self.handlers[header](payload)
             else:
-                print "CRIT:  Protocol error"
-                reactor.stop()
-        else:
-            print ('ERROR: Incomplete Packet: ', packet_type)
-            reactor.stop()
-        #End if, else
-    #End of process_data
+                print "Didn't handle parseable packet %d!"%header
+                print payload
+            #End of if, elif, else
+        #End of for
+    #End of dataReceived
+
     
     def send(self, pkt):
         print ("DEBUG: Sending Packet: ", pkt)

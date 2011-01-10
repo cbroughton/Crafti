@@ -143,6 +143,7 @@ class MinecraftBot:
     #End of onNOTIMPLEMENTED
 
     def onKicked(self, payload):
+        payload['message'] = payload['message'].encode("utf8")
         print ("ERROR: You were kicked from the server.  Reason: %s"%payload['message'])
     #End of onKicked
 #End of MinecraftBot

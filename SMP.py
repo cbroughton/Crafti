@@ -188,6 +188,17 @@ class MinecraftBot:
     def onPreChunk(self, payload):
         self.init_chunk(payload['x'], payload['z'])
     #End of onPreChunk
+
+    def onBlockUpdate(self, payload):
+        x = payload['x']
+        y = payload['y']
+        z = payload['z']
+        block = payload['type']
+        xChunk, localX = divmod(x, 16)
+        zChunk, localZ = divmod(z, 16)
+        self.chunk_cache[xChunk, zChunk].set_block({localX, y, localZ}, block)
+        print ("DEBUG: Single block updated in chunk %d %d at %d %d %d"%(xChunk, zChunk, localX, y, localZ))
+    #End of onBlockUpdate
     
     def onNOTIMPLEMENTED(self, payload):
         print ("WARN:  Not yet implemted!  %s"%payload)
@@ -210,21 +221,21 @@ class MinecraftProtocol(Protocol):
         self.handlers = {0: self.bot.onPing,
                          2: self.bot.onHandshake,
                          3: self.bot.onChat,
-                 #        4: self.bot.onIGNORED,  # Time Updates
+                         4: self.bot.onIGNORED,  # Time Updates
                  #        5: self.bot.onIGNORED,  # Equipment update
                          6: self.bot.onSpawn,
                  #        18: self.bot.onIGNORED, # Arm Animations...
                          24: self.bot.onIGNORED, # Entities
-                 #        28: self.bot.onIGNORED, # Entities
-                 #        29: self.bot.onIGNORED, # Entities
-                 #        30: self.bot.onIGNORED, # Entities
-                 #        31: self.bot.onIGNORED, # Entities
-                 #        32: self.bot.onIGNORED, # Entities
-                 #        33: self.bot.onIGNORED, # Entities
-                 #        38: self.bot.onIGNORED, # Unused
+                         28: self.bot.onIGNORED, # Entities
+                         29: self.bot.onIGNORED, # Entities
+                         30: self.bot.onIGNORED, # Entities
+                         31: self.bot.onIGNORED, # Entities
+                         32: self.bot.onIGNORED, # Entities
+                         33: self.bot.onIGNORED, # Entities
+                         38: self.bot.onIGNORED, # Unused
                          50: self.bot.onPreChunk,
                  #        52: self.bot.onNOTIMPLEMENTED, # Block Updates
-                 #        53: self.bot.onNOTIMPLEMENTED, # Block Updates
+                         53: self.bot.onBlockUpdate,
                          255: self.bot.onKicked
                          }
     #End of __init__

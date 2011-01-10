@@ -196,6 +196,8 @@ class MinecraftBot:
         block = payload['type']
         xChunk, localX = divmod(x, 16)
         zChunk, localZ = divmod(z, 16)
+        if (xChunk, zChunk) not in self.chunk_cache:
+            self.init_chunk(xChunk, zChunk)
         self.chunk_cache[xChunk, zChunk].set_block({0: localX,1: y,2: localZ}, block)
         print ("DEBUG: Single block updated in chunk %d %d at %d %d %d"%(xChunk, zChunk, localX, y, localZ))
     #End of onBlockUpdate

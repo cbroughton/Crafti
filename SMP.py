@@ -1,6 +1,8 @@
 # -*- coding: cp1252 -*-
-from twisted.internet.protocol import Protocol, ClientFactory
-from twisted.internet import reactor, task
+from twisted.internet.protocol import Protocol
+from twisted.internet.protocol import ClientFactory
+from twisted.internet import reactor
+from twisted.internet import task
 
 import os
 import struct
@@ -107,10 +109,6 @@ class MinecraftBot:
         self.protocol.send(make_packet("ping"))
     #End of onPing
     
-    def onLoginResponse(self, payload):
-        print ("DEBUG: Received Login Response packet.")
-    #End of onLoginResponse
-    
     def onHandshake(self, payload):
         print ("DEBUG: Received Handshake packet.")
         print ("INFO:  Asking minecraft.net to join...")
@@ -137,12 +135,16 @@ class MinecraftBot:
     #End of onIGNORED
 
     def onNOTIMPLEMENTED(self, payload):
-        print ("WARN:  Not yet implemted!")
+        print ("WARN:  Not yet implemted!  %s"%payload)
     #End of onNOTIMPLEMENTED
 
     def onKicked(self, payload):
         print ("ERROR: You were kicked from the server.  Reason: %s"%payload['message'])
     #End of onKicked
+
+    def sendMessage(self, message):
+        self.protocol.send(make_packet("chat", {"message": message}))
+    #End of sendMessage
 #End of MinecraftBot
 
 class MinecraftProtocol(Protocol):
@@ -151,10 +153,10 @@ class MinecraftProtocol(Protocol):
         self.buffer = ''
 
         self.handlers = {0: self.bot.onPing,
-                         #1: self.bot.onLoginResponse,
                          2: self.bot.onHandshake,
                          3: self.bot.onChat,
                          4: self.bot.onIGNORED,  # Time Updates
+                         5: self.bot.onIGNORED,  # Equipment update
                          18: self.bot.onIGNORED, # Arm Animations...
                          24: self.bot.onIGNORED, # Entities
                          28: self.bot.onIGNORED, # Entities
@@ -163,7 +165,10 @@ class MinecraftProtocol(Protocol):
                          31: self.bot.onIGNORED, # Entities
                          32: self.bot.onIGNORED, # Entities
                          33: self.bot.onIGNORED, # Entities
+                         38: self.bot.onIGNORED, # Unused
                          50: self.bot.onNOTIMPLEMENTED, # Pre-Chunks
+                         52: self.bot.onNOTIMPLEMENTED, # Block Updates
+                         53: self.bot.onNOTIMPLEMENTED, # Block Updates
                          255: self.bot.onKicked
                          }
     #End of __init__

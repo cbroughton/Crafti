@@ -226,6 +226,21 @@ class MinecraftBot:
     def onChat(self, payload):
         print("INFO:  Received chat message: %s"%payload)
     #End of onChat
+
+    def onSpawn(self, payload):
+        print("INFO:  Got spawn packet, sending location...")
+        payload['position'] = {}
+        payload['position']['x'] = payload['x']
+        payload['position']['y'] = payload['y']
+        payload['position']['z'] = payload['z']
+        payload['position']['stance'] = payload['x'] + 1.2
+        payload['look'] = {}
+        payload['look']['rotation'] = 0
+        payload['look']['pitch'] = 0
+        payload['flying'] = {}
+        payload['flying']['flying'] = 0
+        self.protocol.send(make_packet("location", payload))
+    #End of onSpawn
     
     def onIGNORED(self, payload):
         pass
@@ -259,6 +274,7 @@ class MinecraftProtocol(Protocol):
                          3: self.bot.onChat,
                          4: self.bot.onIGNORED,  # Time Updates
                          5: self.bot.onIGNORED,  # Equipment update
+                         6: self.bot.onSpawn,
                          18: self.bot.onIGNORED, # Arm Animations...
                          24: self.bot.onIGNORED, # Entities
                          28: self.bot.onIGNORED, # Entities

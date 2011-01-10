@@ -3,6 +3,7 @@ from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet import task
+from numpy import *
 
 import os
 import struct
@@ -108,30 +109,11 @@ class Chunk():
         self.z = int(z)
 
         self.blocks = zeros((16, 16, 128), dtype=uint8)
-        self.heightmap = zeros((16, 16), dtype=uint8)
-        self.metadata = zeros((16, 16, 128), dtype=uint8)
-
-        self.tiles = {}
 
     def __repr__(self):
         return "Chunk(%d, %d)" % (self.x, self.z)
 
     __str__ = __repr__
-
-    def regenerate_heightmap(self):
-        for x, z in product(xrange(16), repeat=2):
-            for y in range(127, -1, -1):
-                if self.blocks[x, z, y]:
-                    break
-
-            self.heightmap[x, z] = y
-
-    def regenerate_metadata(self):
-        pass
-
-    def regenerate(self):
-        self.regenerate_heightmap()
-        self.regenerate_metadata()
 
     def load_from_packet(self, packet):
         print ("PACKET: ", packet)
@@ -158,49 +140,15 @@ class Chunk():
             for y in range(127, -1, -1):
                 if self.blocks[x, z, y]:
                     break
-            self.heightmap[x, z] = y
-
-    def get_metadata(self, coords):
-        x, y, z = coords
-
-        return self.metadata[x, z, y]
-
-    def set_metadata(self, coords, metadata):
-        x, y, z = coords
-
-        if self.metadata[x, z, y] != metadata:
-            self.metadata[x, z, y] = metadata
-
-    def height_at(self, x, z):
-        return self.heightmap[x, z]
-
-    def sed(self, search, replace):
-        if (self.blocks == search).any():
-            self.blocks = where(self.blocks == search, replace, self.blocks)
-
-    def get_column(self, x, z):
-        return self.blocks[x, z]
-
-    def set_column(self, x, z, column):
-        self.blocks[x, z] = column
-
-def BravoWorld():
+    
+class MinecraftBot:
     def __init__(self):
         self.chunk_cache = weakref.WeakValueDictionary()
     #End of __init__
-    
-    def load_chunk(self, x, z):
-        if (x, z) in self.chunk_cache:
-            return self.chunk_cache[x, z]
 
-        chunk = Chunk(x, z)
-        return chunk
-    #End of load_chunk
-    
-class MinecraftBot:
-    def __init__(self, world):
-        self.world = world
-    #End of __init__
+    def init_chunk(self, x, z):
+        self.chunk_cache[x, z] = Chunk(x, z)
+    #End of init_chunk
     
     def onPing(self, payload):
         self.protocol.send(make_packet("ping"))
@@ -229,17 +177,8 @@ class MinecraftBot:
 
     def onSpawn(self, payload):
         print("INFO:  Got spawn packet, sending location...")
-        payload['position'] = {}
-        payload['position']['x'] = payload['x']
-        payload['position']['y'] = payload['y']
-        payload['position']['z'] = payload['z']
-        payload['position']['stance'] = payload['x'] + 1.2
-        payload['look'] = {}
-        payload['look']['rotation'] = 0
-        payload['look']['pitch'] = 0
-        payload['flying'] = {}
-        payload['flying']['flying'] = 0
-        self.protocol.send(make_packet("location", payload))
+        print(payload)
+#        self.protocol.send(make_packet("location",, payload))
     #End of onSpawn
     
     def onIGNORED(self, payload):
@@ -247,8 +186,7 @@ class MinecraftBot:
     #End of onIGNORED
 
     def onPreChunk(self, payload):
-        print ("INFO:  INIT ON CHUNK AT %d x %d"%(payload['x'], payload['y']))
-        self.world.load_chunk(payload['x'], payload['y'])
+        self.init_chunk(payload['x'], payload['z'])
     #End of onPreChunk
     
     def onNOTIMPLEMENTED(self, payload):
@@ -272,21 +210,21 @@ class MinecraftProtocol(Protocol):
         self.handlers = {0: self.bot.onPing,
                          2: self.bot.onHandshake,
                          3: self.bot.onChat,
-                         4: self.bot.onIGNORED,  # Time Updates
-                         5: self.bot.onIGNORED,  # Equipment update
+                 #        4: self.bot.onIGNORED,  # Time Updates
+                 #        5: self.bot.onIGNORED,  # Equipment update
                          6: self.bot.onSpawn,
-                         18: self.bot.onIGNORED, # Arm Animations...
+                 #        18: self.bot.onIGNORED, # Arm Animations...
                          24: self.bot.onIGNORED, # Entities
-                         28: self.bot.onIGNORED, # Entities
-                         29: self.bot.onIGNORED, # Entities
-                         30: self.bot.onIGNORED, # Entities
-                         31: self.bot.onIGNORED, # Entities
-                         32: self.bot.onIGNORED, # Entities
-                         33: self.bot.onIGNORED, # Entities
-                         38: self.bot.onIGNORED, # Unused
+                 #        28: self.bot.onIGNORED, # Entities
+                 #        29: self.bot.onIGNORED, # Entities
+                 #        30: self.bot.onIGNORED, # Entities
+                 #        31: self.bot.onIGNORED, # Entities
+                 #        32: self.bot.onIGNORED, # Entities
+                 #        33: self.bot.onIGNORED, # Entities
+                 #        38: self.bot.onIGNORED, # Unused
                          50: self.bot.onPreChunk,
-                         52: self.bot.onNOTIMPLEMENTED, # Block Updates
-                         53: self.bot.onNOTIMPLEMENTED, # Block Updates
+                 #        52: self.bot.onNOTIMPLEMENTED, # Block Updates
+                 #        53: self.bot.onNOTIMPLEMENTED, # Block Updates
                          255: self.bot.onKicked
                          }
     #End of __init__
@@ -318,8 +256,7 @@ class MinecraftProtocol(Protocol):
 
 class Connection(ClientFactory):
     def __init__(self):
-        world = BravoWorld()
-        self.bot = MinecraftBot(world)
+        self.bot = MinecraftBot()
     #End of __init__
 
     def startedConnecting(self, connector):

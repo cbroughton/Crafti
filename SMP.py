@@ -7,6 +7,7 @@ import struct
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(sys.executable)))
 
+from packets import make_packet
 from packets import parse_packets
 
 import mechanize
@@ -105,7 +106,7 @@ class MinecraftBot:
     def onPing(self, payload):
         print ("DEBUG: Received Keepalive packet.")
         print ("DEBUG: Sending Keepalive packet.")
-        self.protocol.send(p00Keepalive())
+        self.protocol.send(make_packet("ping"))
     #End of onPing
     
     def onLoginResponse(self, payload):
@@ -113,137 +114,57 @@ class MinecraftBot:
     #End of onLoginResponse
     
     def onHandshake(self, payload):
-        print ("DEBUG: Received Handshake packet.  payload = %s"%payload)
+        print ("DEBUG: Received Handshake packet.")
+        print ("INFO:  Asking minecraft.net to join...")
+        login = mechanize.Browser()
+        url = "http://www.minecraft.net/game/joinserver.jsp?user="
+        url+= username + "&sessionId=" + session_id
+        url+= "&serverId=" + payload['username']
+        login.open(url)
+        
         print ("DEBUG: Sending Login Response packet.")
-        self.protocol.send(p01LoginResponse(username))
+        self.protocol.send(make_packet("login", {"protocol": 8,
+                                                 "username": username,
+                                                 "unused": "Password",
+                                                 "seed": 0,
+                                                 "dimension": 0}))
     #End of onHandshake
-#End of MinecraftBot
 
-def p00Keepalive():
-    pkt = struct.pack('B', 0x00)
-    return pkt
-#End of 00Keepalive
+    def onChat(self, payload):
+        print("INFO:  Received chat message: %s"%payload['message'])
+    #End of onChat
     
-def p01LoginResponse(username, password = "Password"):
-    pkt = struct.pack('B', 0x01)   # Packet ID
-    pkt+= packString(username)     # Useranme
-    pkt+= packString(password)     # Password
-    pkt+= packLong()               # Map Seed
-    pkt+= struct.pack('B', 0x00)   # Position
-    return pkt
-#End of 01Login
-    
-def p02Handshake(username):
-    pkt = struct.pack('B', 0x02)   # Packet ID
-    pkt+= packString(username)     # Username
-    return pkt
-#End of 02Handshake
-    
-def packLong():
-    pkt = struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    pkt+= struct.pack('B', 0x00)
-    return pkt
-#End of packLong
-    
-def packString(string):
-    pkt = struct.pack('>H', len(string))
-    pkt+= struct.pack('>%ds'%len(string), string)
-    return pkt
-#End of packString
+    def onIGNORED(self, payload):
+        pass
+    #End of onIGNORED
+
+    def onNOTIMPLEMENTED(self, payload):
+        print ("WARN:  Not yet implemted!")
+    #End of onNOTIMPLEMENTED
+
+    def onKicked(self, payload):
+        print ("ERROR: You were kicked from the server.  Reason: %s"%payload['message'])
+    #End of onKicked
+#End of MinecraftBot
 
 class MinecraftProtocol(Protocol):
     def __init__(self, bot):
         self.bot = bot
         self.buffer = ''
-        self.packet_length = {"\x00": 1,
-                              "\x01": 18, # VARIABLE
-                              "\x02": 3,  # VARIABLE
-                              "\x03": 3,  # VARIABLE
-                              "\x04": 9,
-                              "\x05": 9,
-                              "\x06": 13,
-                              "\x08": 3,
-                              "\x09": 1,
-                              "\x0D": 42,
-                              "\x10": 3,
-                              "\x12": 6,
-                              "\x14": 23, # VARIABLE
-                              "\x15": 23,
-                              "\x16": 9,
-                              "\x17": 18,
-                              "\x18": 20,
-                              "\x1C": 11,
-                              "\x1D": 5,
-                              "\x1E": 5,
-                              "\x1F": 8,
-                              "\x20": 7,
-                              "\x21": 10,
-                              "\x22": 19,
-                              "\x26": 6,
-                              "\x27": 9,
-                              "\x32": 10,
-                              "\x33": 18, # VARIABLE
-                              "\x34": 11, # VARIABLE
-                              "\x35": 12,
-                              "\x3C": 33, # VARIABLE
-                              "\x67": 6,  # VARIABLE
-                              "\x68": 4,  # VARIABLE
-                              "\x69": 6,
-                              "\x6A": 5,
-                              "\x82": 11, # VARIABLE
-                              "\xFF": 3   # VARIABLE
-                              }
-        self.StoC = {"\x00": 'keep alive',
-                     "\x01": 'login response',
-                     "\x02": 'handshake',
-                     "\x03": 'chat message',
-                     "\x04": 'time update',             #IGNORE THIS
-                     "\x05": 'entity equipment',        #IGNORE THIS
-                     "\x06": 'spawn position',
-                     #07 (Client to Server ONLY)
-                     "\x08": 'update health',
-                     "\x09": 'respawn',
-                     #0A - 0C (Client to Server ONLY)
-                     "\x0D": 'player look and position',
-                     #0E - 0F (Client to Server ONLY)
-                     "\x10": 'holding change',          #IGNORE THIS
-                     "\x12": 'animation',               #IGNORE THIS
-                     "\x14": 'named entity spawn',
-                     "\x15": 'pickup spawn',
-                     "\x16": 'collect item',
-                     "\x17": 'add object / vehicle',
-                     "\x18": 'mob spawn',               #IGNORE THIS
-                     "\x1C": 'entity velocity (?)',     #IGNORE THIS
-                     "\x1D": 'destroy entity',          #IGNORE THIS
-                     "\x1E": 'entity',                  #IGNORE THIS
-                     "\x1E": 'entity relative move',    #IGNORE THIS
-                     "\x20": 'entity look',             #IGNORE THIS
-                     "\x21": 'entity look and rel.move',#IGNORE THIS
-                     "\x26": 'entity status',           #IGNORE THIS
-                     "\x27": 'attach entity',           #IGNORE THIS
-                     "\x32": 'pre-chunk',
-                     "\x33": 'map chunk',
-                     "\x34": 'multi block change',
-                     "\x35": 'block change',            #IGNORE THIS (?)
-                     "\x3C": 'explosion (?)',           #IGNORE THIS (?)
-                     #64 - 66 (Client to Server ONLY)
-                     "\x67": 'set slot',                #IGNORE THIS (?)
-                     "\x68": 'window item',             #IGNORE THIS (?)
-                     "\x69": 'update progress bar',     #IGNORE THIS
-                     "\x6A": 'transaction',             #IGNORE THIS (?)
-                     "\x82": 'sign update',             #IGNORE THIS
-                     "\xFF": 'kick'
-                     }
 
-        handlers[0] = self.bot.onPing
-    #    handlers[1] = self.bot.onLoginResponse
-    #    handlers[2] = self.bot.onHandshake
+        self.handlers = {0: self.bot.onPing,
+                         #1: self.bot.onLoginResponse,
+                         2: self.bot.onHandshake,
+                         3: self.bot.onChat,
+                         4: self.bot.onIGNORED,
+                         24: self.bot.onIGNORED,
+                         30: self.bot.onIGNORED,
+                         31: self.bot.onIGNORED,
+                         32: self.bot.onIGNORED,
+                         33: self.bot.onIGNORED,
+                         50: self.bot.onNOTIMPLEMENTED,
+                         255: self.bot.onKicked
+                         }
     #End of __init__
     
     def dataReceived(self, data):
@@ -268,8 +189,8 @@ class MinecraftProtocol(Protocol):
     #End of send
     
     def connectionMade(self):
-            print("DEBUG: Sending a Handshake!")
-            self.send(p02Handshake(username))
+        print("DEBUG: Sending a Handshake!")
+        self.send(make_packet("handshake", {"username": username}))
     #End of connectionMade
 #End of MinecraftProtocol
 

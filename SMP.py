@@ -8,7 +8,9 @@ import os
 import struct
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(sys.executable)))
+import weakref
 
+# Bravo Libraries (~dab755a0b118b5125e4b)
 from packets import make_packet
 from packets import parse_packets
 
@@ -100,9 +102,104 @@ if loggedIn:
     #End of try, except
 #End of if
 
-class MinecraftBot:
-    def __init__(self):
+class Chunk():
+    def __init__(self, x, z):
+        self.x = int(x)
+        self.z = int(z)
+
+        self.blocks = zeros((16, 16, 128), dtype=uint8)
+        self.heightmap = zeros((16, 16), dtype=uint8)
+        self.metadata = zeros((16, 16, 128), dtype=uint8)
+
+        self.tiles = {}
+
+    def __repr__(self):
+        return "Chunk(%d, %d)" % (self.x, self.z)
+
+    __str__ = __repr__
+
+    def regenerate_heightmap(self):
+        for x, z in product(xrange(16), repeat=2):
+            for y in range(127, -1, -1):
+                if self.blocks[x, z, y]:
+                    break
+
+            self.heightmap[x, z] = y
+
+    def regenerate_metadata(self):
         pass
+
+    def regenerate(self):
+        self.regenerate_heightmap()
+        self.regenerate_metadata()
+
+    def load_from_packet(self, packet):
+        print ("PACKET: ", packet)
+        
+#        array = [chr(i) for i in self.blocks.ravel()]
+#        array += pack_nibbles(self.metadata)
+#        array += pack_nibbles(self.skylight)
+#        array += pack_nibbles(self.blocklight)
+#        packet = make_packet("chunk", x=self.x * 16, y=0, z=self.z * 16,
+#            x_size=15, y_size=127, z_size=15, data="".join(array))
+#        return packet
+
+    def get_block(self, coords):
+        x, y, z = coords
+
+        return self.blocks[x, z, y]
+
+    def set_block(self, coords, block):
+        x, y, z = coords
+
+        if self.blocks[x, z, y] != block:
+            self.blocks[x, z, y] = block
+
+            for y in range(127, -1, -1):
+                if self.blocks[x, z, y]:
+                    break
+            self.heightmap[x, z] = y
+
+    def get_metadata(self, coords):
+        x, y, z = coords
+
+        return self.metadata[x, z, y]
+
+    def set_metadata(self, coords, metadata):
+        x, y, z = coords
+
+        if self.metadata[x, z, y] != metadata:
+            self.metadata[x, z, y] = metadata
+
+    def height_at(self, x, z):
+        return self.heightmap[x, z]
+
+    def sed(self, search, replace):
+        if (self.blocks == search).any():
+            self.blocks = where(self.blocks == search, replace, self.blocks)
+
+    def get_column(self, x, z):
+        return self.blocks[x, z]
+
+    def set_column(self, x, z, column):
+        self.blocks[x, z] = column
+
+def BravoWorld():
+    def __init__(self):
+        self.chunk_cache = weakref.WeakValueDictionary()
+    #End of __init__
+    
+    def load_chunk(self, x, z):
+        if (x, z) in self.chunk_cache:
+            return self.chunk_cache[x, z]
+
+        chunk = Chunk(x, z)
+        return chunk
+    #End of load_chunk
+    
+class MinecraftBot:
+    def __init__(self, world):
+        self.world = world
     #End of __init__
     
     def onPing(self, payload):
@@ -134,6 +231,11 @@ class MinecraftBot:
         pass
     #End of onIGNORED
 
+    def onPreChunk(self, payload):
+        print ("INFO:  INIT ON CHUNK AT %d x %d"%(payload['x'], payload['y']))
+        self.world.load_chunk(payload['x'], payload['y'])
+    #End of onPreChunk
+    
     def onNOTIMPLEMENTED(self, payload):
         print ("WARN:  Not yet implemted!  %s"%payload)
     #End of onNOTIMPLEMENTED
@@ -166,7 +268,7 @@ class MinecraftProtocol(Protocol):
                          32: self.bot.onIGNORED, # Entities
                          33: self.bot.onIGNORED, # Entities
                          38: self.bot.onIGNORED, # Unused
-                         50: self.bot.onNOTIMPLEMENTED, # Pre-Chunks
+                         50: self.bot.onPreChunk,
                          52: self.bot.onNOTIMPLEMENTED, # Block Updates
                          53: self.bot.onNOTIMPLEMENTED, # Block Updates
                          255: self.bot.onKicked
@@ -200,7 +302,8 @@ class MinecraftProtocol(Protocol):
 
 class Connection(ClientFactory):
     def __init__(self):
-        self.bot = MinecraftBot()
+        world = BravoWorld()
+        self.bot = MinecraftBot(world)
     #End of __init__
 
     def startedConnecting(self, connector):

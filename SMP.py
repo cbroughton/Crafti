@@ -104,8 +104,6 @@ class MinecraftBot:
     #End of __init__
     
     def onPing(self, payload):
-        print ("DEBUG: Received Keepalive packet.")
-        print ("DEBUG: Sending Keepalive packet.")
         self.protocol.send(make_packet("ping"))
     #End of onPing
     
@@ -131,7 +129,7 @@ class MinecraftBot:
     #End of onHandshake
 
     def onChat(self, payload):
-        print("INFO:  Received chat message: %s"%payload['message'])
+        print("INFO:  Received chat message: %s"%payload)
     #End of onChat
     
     def onIGNORED(self, payload):
@@ -143,7 +141,6 @@ class MinecraftBot:
     #End of onNOTIMPLEMENTED
 
     def onKicked(self, payload):
-        payload['message'] = payload['message'].encode("utf8")
         print ("ERROR: You were kicked from the server.  Reason: %s"%payload['message'])
     #End of onKicked
 #End of MinecraftBot
@@ -157,13 +154,16 @@ class MinecraftProtocol(Protocol):
                          #1: self.bot.onLoginResponse,
                          2: self.bot.onHandshake,
                          3: self.bot.onChat,
-                         4: self.bot.onIGNORED,
-                         24: self.bot.onIGNORED,
-                         30: self.bot.onIGNORED,
-                         31: self.bot.onIGNORED,
-                         32: self.bot.onIGNORED,
-                         33: self.bot.onIGNORED,
-                         50: self.bot.onNOTIMPLEMENTED,
+                         4: self.bot.onIGNORED,  # Time Updates
+                         18: self.bot.onIGNORED, # Arm Animations...
+                         24: self.bot.onIGNORED, # Entities
+                         28: self.bot.onIGNORED, # Entities
+                         29: self.bot.onIGNORED, # Entities
+                         30: self.bot.onIGNORED, # Entities
+                         31: self.bot.onIGNORED, # Entities
+                         32: self.bot.onIGNORED, # Entities
+                         33: self.bot.onIGNORED, # Entities
+                         50: self.bot.onNOTIMPLEMENTED, # Pre-Chunks
                          255: self.bot.onKicked
                          }
     #End of __init__
@@ -185,12 +185,10 @@ class MinecraftProtocol(Protocol):
 
     
     def send(self, pkt):
-        print ("DEBUG: Sending Packet: ", pkt)
         self.transport.write(pkt)
     #End of send
     
     def connectionMade(self):
-        print("DEBUG: Sending a Handshake!")
         self.send(make_packet("handshake", {"username": username}))
     #End of connectionMade
 #End of MinecraftProtocol

@@ -196,7 +196,7 @@ class MinecraftBot:
         block = payload['type']
         xChunk, localX = divmod(x, 16)
         zChunk, localZ = divmod(z, 16)
-        self.chunk_cache[xChunk, zChunk].set_block({localX, y, localZ}, block)
+        self.chunk_cache[xChunk, zChunk].set_block({0: localX,1: y,2: localZ}, block)
         print ("DEBUG: Single block updated in chunk %d %d at %d %d %d"%(xChunk, zChunk, localX, y, localZ))
     #End of onBlockUpdate
     
@@ -222,9 +222,9 @@ class MinecraftProtocol(Protocol):
                          2: self.bot.onHandshake,
                          3: self.bot.onChat,
                          4: self.bot.onIGNORED,  # Time Updates
-                 #        5: self.bot.onIGNORED,  # Equipment update
+                         5: self.bot.onIGNORED,  # Equipment update
                          6: self.bot.onSpawn,
-                 #        18: self.bot.onIGNORED, # Arm Animations...
+                         18: self.bot.onIGNORED, # Arm Animations...
                          24: self.bot.onIGNORED, # Entities
                          28: self.bot.onIGNORED, # Entities
                          29: self.bot.onIGNORED, # Entities

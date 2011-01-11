@@ -104,17 +104,17 @@ if loggedIn:
     #End of try, except
 #End of if
 
-
-
 class Chunk():
     def __init__(self, x, z):
         self.x = int(x)
         self.z = int(z)
 
         self.blocks = zeros((16, 16, 128), dtype=uint8)
+    #End of __init__
 
     def __repr__(self):
         return "Chunk(%d, %d)" % (self.x, self.z)
+    #End of __repr__
 
     __str__ = __repr__
 
@@ -133,6 +133,7 @@ class Chunk():
         x, y, z = coords
 
         return self.blocks[x, z, y]
+    #End of get_block
 
     def set_block(self, coords, block):
         x, y, z = coords
@@ -143,6 +144,10 @@ class Chunk():
             for y in range(127, -1, -1):
                 if self.blocks[x, z, y]:
                     break
+                #End of if
+            #End of for y
+        #End of if
+    #End of set_block
     
 class MinecraftBot:
     def __init__(self, stats):
@@ -182,7 +187,14 @@ class MinecraftBot:
     def onSpawn(self, payload):
         print("INFO:  Got spawn packet, sending location...")
         print(payload)
-#        self.protocol.send(make_packet("location",, payload))
+        self.protocol.send(make_packet("location", {"position": {"x": -532,
+                                                                 "y": 70,
+                                                                 "stance": 69,
+                                                                 "z": -2850
+                                                                },
+                                                    "look": {"rotation": 0,
+                                                             "pitch": 0},
+                                                    "flying": {"flying": 0}}))
     #End of onSpawn
     
     def onIGNORED(self, payload):
@@ -206,37 +218,41 @@ class MinecraftBot:
         if (xChunk, zChunk) not in self.chunk_cache:
             self.init_chunk(xChunk, zChunk)
         self.chunk_cache[xChunk, zChunk].set_block({0: localX,1: y,2: localZ}, block)
-        print ("DEBUG: Single block updated in chunk %d %d at %d %d %d"%(xChunk, zChunk, localX, y, localZ))
     #End of onBlockUpdate
-    
+        
     def onLargeUpdate(self, payload):
         size = (payload['x_size'] + 1) * (payload['y_size'] + 1) * (payload['z_size'] + 1)
         blocks = payload.data[:size]
-        for x in blocks:
-            x = struct.unpack('B', x)
         
-        x, y, z = payload['x'], payload['y'], payload['z']
+        x, y, z, pointer = payload['x'], payload['y'], payload['z'], 0
         while x < payload['x'] + payload['x_size'] + 1:
             x += 1
             xChunk, localX = divmod(x, 16)
-            print ("X %d Local %d"%(x, localX))
             while z < payload['z'] + payload['z_size'] + 1:
                 z += 1
                 zChunk, localZ = divmod(z, 16)
-                print ("Z %d Local %d"%(z, localZ))
                 if (xChunk, zChunk) not in self.chunk_cache:
                     self.init_chunk(xChunk, zChunk)
                 while y < payload['y'] + payload['y_size'] + 1:
                     y += 1
-                    print ("Y %d"%y)
                     if ("blocks_received") not in self.stats:
                         self.stats['blocks_received'] = 0
                     self.stats['blocks_received'] += 1
-                    block = blocks[payload['y']-y + (payload['z']-z * (payload['y_size']+1)) + (payload['x']-x * (payload['y_size']+1) * (payload['z_size']+1))]
-                    if block == 264: #Diamond Ore
-                        print ("== DIAMOND FOUND ==")
-                        print ("X: %d, Y: %d, Z: %d"%(x, y, z))
-                    self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block[0])
+                    block = blocks[pointer][0]
+                    block = struct.unpack('B', block)
+                    block = int(block[0])
+                    if block == 14:
+                        print ("== GOLDORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 15:
+                        print ("== IRONORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 16:
+                        print ("== COALORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 46:
+                        print ("== --TNT-- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 56:
+                        print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
+                    pointer += 1
                 #End while z
             #End while y
         #End while x

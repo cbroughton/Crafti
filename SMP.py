@@ -208,7 +208,7 @@ class MinecraftBot:
         self.chunk_cache[xChunk, zChunk].set_block({0: localX,1: y,2: localZ}, block)
         print ("DEBUG: Single block updated in chunk %d %d at %d %d %d"%(xChunk, zChunk, localX, y, localZ))
     #End of onBlockUpdate
-
+    
     def onLargeUpdate(self, payload):
         size = (payload['x_size'] + 1) * (payload['y_size'] + 1) * (payload['z_size'] + 1)
         blocks = payload.data[:size]

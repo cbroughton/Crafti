@@ -3,13 +3,14 @@ from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet import task
-from numpy import *
+
+from numpy import zeros
+from numpy import uint8
 
 import os
 import struct
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(sys.executable)))
-import weakref
 
 # Bravo Libraries (~dab755a0b118b5125e4b)
 from packets import make_packet
@@ -103,6 +104,8 @@ if loggedIn:
     #End of try, except
 #End of if
 
+
+
 class Chunk():
     def __init__(self, x, z):
         self.x = int(x)
@@ -142,8 +145,9 @@ class Chunk():
                     break
     
 class MinecraftBot:
-    def __init__(self):
-        self.chunk_cache = weakref.WeakValueDictionary()
+    def __init__(self, stats):
+        self.chunk_cache = {}
+        self.stats = stats
     #End of __init__
 
     def init_chunk(self, x, z):
@@ -190,6 +194,9 @@ class MinecraftBot:
     #End of onPreChunk
 
     def onBlockUpdate(self, payload):
+        if ("blocks_received") not in self.stats:
+            self.stats['blocks_received'] = 0
+        self.stats['blocks_received'] += 1
         x = payload['x']
         y = payload['y']
         z = payload['z']
@@ -218,6 +225,7 @@ class MinecraftBot:
 class MinecraftProtocol(Protocol):
     def __init__(self, bot):
         self.bot = bot
+        self.stats = bot.stats
         self.buffer = ''
 
         self.handlers = {0: self.bot.onPing,
@@ -244,10 +252,16 @@ class MinecraftProtocol(Protocol):
     
     def dataReceived(self, data):
         self.buffer += data
-
+        if ("data_received") not in self.stats:
+            self.stats['data_received'] = 0
+        self.stats['data_received'] += len(data)
+        
         packets, self.buffer = parse_packets(self.buffer)
 
         for header, payload in packets:
+            if ("packets_received") not in self.stats:
+                self.stats['packets_received'] = 0
+            self.stats['packets_received'] += 1
             if header in self.handlers:
                 self.handlers[header](payload)
             else:
@@ -256,10 +270,15 @@ class MinecraftProtocol(Protocol):
             #End of if, elif, else
         #End of for
     #End of dataReceived
-
     
     def send(self, pkt):
         self.transport.write(pkt)
+        if ("packets_sent") not in self.stats:
+            self.stats['packets_sent'] = 0
+        self.stats['packets_sent'] += 1
+        if ("data_sent") not in self.stats:
+            self.stats['data_sent'] = 0
+        self.stats['data_sent'] += len(pkt)
     #End of send
     
     def connectionMade(self):
@@ -269,7 +288,8 @@ class MinecraftProtocol(Protocol):
 
 class Connection(ClientFactory):
     def __init__(self):
-        self.bot = MinecraftBot()
+        self.stats = {}
+        self.bot = MinecraftBot(self.stats)
     #End of __init__
 
     def startedConnecting(self, connector):

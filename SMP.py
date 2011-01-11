@@ -235,6 +235,7 @@ class MinecraftProtocol(Protocol):
                          5: self.bot.onIGNORED,  # Equipment update
                          6: self.bot.onSpawn,
                          18: self.bot.onIGNORED, # Arm Animations...
+                         23: self.bot.onIGNORED, # Vehicles
                          24: self.bot.onIGNORED, # Entities
                          28: self.bot.onIGNORED, # Entities
                          29: self.bot.onIGNORED, # Entities

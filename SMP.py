@@ -208,9 +208,42 @@ class MinecraftBot:
         self.chunk_cache[xChunk, zChunk].set_block({0: localX,1: y,2: localZ}, block)
         print ("DEBUG: Single block updated in chunk %d %d at %d %d %d"%(xChunk, zChunk, localX, y, localZ))
     #End of onBlockUpdate
+
+    def onLargeUpdate(self, payload):
+        size = (payload['x_size'] + 1) * (payload['y_size'] + 1) * (payload['z_size'] + 1)
+        blocks = payload.data[:size]
+        for x in blocks:
+            x = struct.unpack('B', x)
+        
+        x, y, z = payload['x'], payload['y'], payload['z']
+        while x < payload['x'] + payload['x_size'] + 1:
+            x += 1
+            xChunk, localX = divmod(x, 16)
+            print ("X %d Local %d"%(x, localX))
+            while z < payload['z'] + payload['z_size'] + 1:
+                z += 1
+                zChunk, localZ = divmod(z, 16)
+                print ("Z %d Local %d"%(z, localZ))
+                if (xChunk, zChunk) not in self.chunk_cache:
+                    self.init_chunk(xChunk, zChunk)
+                while y < payload['y'] + payload['y_size'] + 1:
+                    y += 1
+                    print ("Y %d"%y)
+                    if ("blocks_received") not in self.stats:
+                        self.stats['blocks_received'] = 0
+                    self.stats['blocks_received'] += 1
+                    block = blocks[payload['y']-y + (payload['z']-z * (payload['y_size']+1)) + (payload['x']-x * (payload['y_size']+1) * (payload['z_size']+1))]
+                    if block == 264: #Diamond Ore
+                        print ("== DIAMOND FOUND ==")
+                        print ("X: %d, Y: %d, Z: %d"%(x, y, z))
+                    self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block[0])
+                #End while z
+            #End while y
+        #End while x
+    #End of onLargeUpdate
     
     def onNOTIMPLEMENTED(self, payload):
-        print ("WARN:  Not yet implemted!  %s"%payload)
+        print ("WARN:  Packet not yet implemted!  (map data)")
     #End of onNOTIMPLEMENTED
 
     def onKicked(self, payload):
@@ -245,7 +278,8 @@ class MinecraftProtocol(Protocol):
                          33: self.bot.onIGNORED, # Entities
                          38: self.bot.onIGNORED, # Unused
                          50: self.bot.onPreChunk,
-                 #        52: self.bot.onNOTIMPLEMENTED, # Block Updates
+                         51: self.bot.onLargeUpdate,
+                         52: self.bot.onNOTIMPLEMENTED, # Block Updates
                          53: self.bot.onBlockUpdate,
                          255: self.bot.onKicked
                          }

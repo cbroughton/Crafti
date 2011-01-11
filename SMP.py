@@ -153,6 +153,7 @@ class MinecraftBot:
     def __init__(self, stats):
         self.chunk_cache = {}
         self.stats = stats
+        self.delay = 0
     #End of __init__
 
     def init_chunk(self, x, z):
@@ -186,25 +187,41 @@ class MinecraftBot:
 
     def onSpawn(self, payload):
         print("INFO:  Got spawn packet, sending location...")
-        print(payload)
-        self.protocol.send(make_packet("location", {"position": {"x": -532,
-                                                                 "y": 70,
-                                                                 "stance": 69,
-                                                                 "z": -2850
-                                                                },
-                                                    "look": {"rotation": 0,
-                                                             "pitch": 0},
-                                                    "flying": {"flying": 0}}))
+   #     print(payload)
+   #     self.protocol.send(make_packet("location", {"position": {"x": -532,
+   #                                                              "y": 70,
+   #                                                              "stance": 69,
+   #                                                              "z": -2850
+   #                                                             },
+   #                                                 "look": {"rotation": 0,
+   #                                                          "pitch": 0},
+   #                                                 "flying": {"flying": 0}}))
     #End of onSpawn
     
     def onIGNORED(self, payload):
         pass
     #End of onIGNORED
 
+    def onLocation(self, payload):
+        self.location = payload
+    #End of onLocation
+
+    def nextLoc(self):
+        if self.delay > 10:
+            self.delay = 0
+            if hasattr(self, 'location'):
+                print (self.location)
+                self.location['position']['x'] += 100
+                print (self.location)
+                self.protocol.send(make_packet("location", self.location))
+        else:
+            self.delay += 1
+    #End of nextLoc
+
     def onPreChunk(self, payload):
         self.init_chunk(payload['x'], payload['z'])
     #End of onPreChunk
-
+    
     def onBlockUpdate(self, payload):
         if ("blocks_received") not in self.stats:
             self.stats['blocks_received'] = 0
@@ -249,6 +266,8 @@ class MinecraftBot:
                         print ("== COALORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 46:
                         print ("== --TNT-- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 54:
+                        print ("== -CHEST- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 56:
                         print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
@@ -256,6 +275,7 @@ class MinecraftBot:
                 #End while z
             #End while y
         #End while x
+        self.nextLoc()
     #End of onLargeUpdate
     
     def onNOTIMPLEMENTED(self, payload):
@@ -267,7 +287,7 @@ class MinecraftBot:
     #End of onKicked
 
     def sendMessage(self, message):
-        self.protocol.send(make_packet("chat", {"message": message}))
+        self.protocol.send(make_packet("chat", {"message": "/tell uyuyuy99" + message}))
     #End of sendMessage
 #End of MinecraftBot
 
@@ -283,7 +303,11 @@ class MinecraftProtocol(Protocol):
                          4: self.bot.onIGNORED,  # Time Updates
                          5: self.bot.onIGNORED,  # Equipment update
                          6: self.bot.onSpawn,
+                         13: self.bot.onLocation,
                          18: self.bot.onIGNORED, # Arm Animations...
+                         20: self.bot.onIGNORED, # Player Locations, come back later!
+                         21: self.bot.onIGNORED, # Entities (?)
+                         22: self.bot.onIGNORED, # Entities (?)
                          23: self.bot.onIGNORED, # Vehicles
                          24: self.bot.onIGNORED, # Entities
                          28: self.bot.onIGNORED, # Entities
@@ -292,11 +316,14 @@ class MinecraftProtocol(Protocol):
                          31: self.bot.onIGNORED, # Entities
                          32: self.bot.onIGNORED, # Entities
                          33: self.bot.onIGNORED, # Entities
+                         34: self.bot.onIGNORED, # Entities
                          38: self.bot.onIGNORED, # Unused
                          50: self.bot.onPreChunk,
                          51: self.bot.onLargeUpdate,
-                         52: self.bot.onNOTIMPLEMENTED, # Block Updates
+                         52: self.bot.onIGNORED, # Block Updates, come back later!
                          53: self.bot.onBlockUpdate,
+                         103: self.bot.onIGNORED, # Inventory, come back later!
+                         104: self.bot.onIGNORED, # Inventory, come back later!
                          255: self.bot.onKicked
                          }
     #End of __init__

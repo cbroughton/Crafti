@@ -162,64 +162,6 @@ class MinecraftBot:
     
     def nextLoc(self):
         pass
-        x = self.location.position.x
-        y = self.location.position.y
-        z = self.location.position.z
-        
-     #   dx = -5
-     #   while dx < 5:
-     #       dx += 1
-     #       dy = -5
-     #       while dy < 5:
-     #           dy += 1
-     #           dz = -5
-     #           while dz < 5:
-     #               dz += 1
-     #               face = "+x"
-     #               x = self.location.position.x + dx
-     #               y = self.location.position.y + dy
-     #               z = self.location.position.z + dz
-     #               print (" Destroying block at %d %d %d "%(x, y, z))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 0}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 1}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 3}))
-     #               self.protocol.send(make_packet("digging", {"x": x, "y": y, "z": z, "face": face, "state": 4}))
-     #   self.error[2] = self.error[3]
     #End of nextLoc
     
     def onPing(self, payload):
@@ -304,13 +246,10 @@ class MinecraftBot:
                     #if block == 16:
                     #    print ("== COALORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 46:
-                        self.sendMessage ("tnt at X: %d, Y: %d, Z: %d"%(x, y, z))
                         print ("== --TNT-- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 54:
-                        self.sendMessage ("chests at X: %d, Y: %d, Z: %d"%(x, y, z))
                         print ("== -CHEST- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 56:
-                        self.sendMessage ("diamond at == X: %d, Y: %d, Z: %d"%(x, y, z))
                         print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
                     pointer += 1
@@ -348,9 +287,9 @@ class MinecraftProtocol(Protocol):
                          4: self.bot.onIGNORED,  # Time Updates
                          5: self.bot.onIGNORED,  # Equipment update
                          6: self.bot.onIGNORED,  # Spawn Location Packet
-                         13: self.bot.onLocation,
+                         13: self.bot.onIGNORED, # My Location, come back later!
                          18: self.bot.onIGNORED, # Arm Animations...
-                         #20: self.bot.onLocation,
+                         20: self.bot.onIGNORED, # Player Locations, come back later!
                          21: self.bot.onIGNORED, # Entities (?)
                          22: self.bot.onIGNORED, # Entities (?)
                          23: self.bot.onIGNORED, # Vehicles
@@ -365,7 +304,7 @@ class MinecraftProtocol(Protocol):
                          38: self.bot.onIGNORED, # Unused
                          50: self.bot.onPreChunk,
                          51: self.bot.onLargeUpdate,
-                         52: self.bot.onIGNORED, # Block Updates, come back later!
+                         52: self.bot.onIGNORED, # Multi-Block Updates, come back later!
                          53: self.bot.onBlockUpdate,
                          103: self.bot.onIGNORED, # Inventory, come back later!
                          104: self.bot.onIGNORED, # Inventory, come back later!

@@ -3,11 +3,12 @@ from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet import task
+from twisted.internet import tksupport
 
 from numpy import zeros
 from numpy import uint8
 
-import gtk
+from Tkinter import *
 
 import os
 import struct
@@ -396,55 +397,31 @@ class Connection(ClientFactory):
 #End of Connection
 
 if loggedIn:
-    print ("DEBUG: Initialising ClientFactory...")
+    print ("DEBUG: Initialising ClientFactory...")    
+    class GUI(Frame):
+        def createWidgets(self):
+            self.FindOres = Button(self)
+            self.FindOres['text'] = "Find Ores"
+            self.FindOres['fg'] = "black"
+            self.FindOres['command'] = self.FindOres
+        
+            self.FindOres.pack({"side": "left"})
+        #End of createWidgets
+    
+        def __init__(self, master=None):
+            Frame.__init__(self, master)
+            self.pack()
+            self.createWidgets()
+        #End of __init__
+    #End of GUI
+
+    root = Tk()
+    tksupport.install(root)
+    app = GUI(master=root)
     reactor.connectTCP(server, port, Connection())
     reactor.run()
+   # app.mainloop()
+   # root.destroy()
 else:
     print ("CRIT:  You never successfully logged in, exiting.")
 #End of if, else
-
-
-#######################
-
-class GUI:
-    def close(self, widget):
-        gtk.main_quit()
-    
-    def __init__(self):
-        # Control Window
-        MainWindow = gtk.Window()
-        MainWindow.set_title("Crafti -- Main")
-        MainWindow.connect("destroy", self.close)
-        Main_LogToggle = gtk.Button("Hide Log")
-        Main_LogToggle.connect("clicked", self.toggleLog)
-        MainWindow.add(Main_LogToggle)
-        MainWindow.show_all()
-
-        # Logger Window
-        LogWindow = gtk.Window()
-        LogWindow.set_title("Crafti -- Logger")
-
-        # Ore Findings Window
-        OreWindow = gtk.Window()
-        OreWindow.set_title("Crafti -- Ore Finder")
-    #End of __init__
-    
-    def toggleLog(self, LogWindow):
-        if LogWindow.visible:
-            LogWindow.hide()
-            Main_LogToggle.set_label("Show Log")
-        else:
-            LogWindow.show()
-            Main_LogToggle.set_label("Hide Log")
-    #End of toggleLog
-    
-GUI()
-gtk.main()
-
-
-
-
-
-
-
-

@@ -191,6 +191,7 @@ class MinecraftBot:
     #End of onChat
     
     def onIGNORED(self, payload):
+        self.sendMessage("/i 57 64")
         pass
     #End of onIGNORED
 
@@ -238,19 +239,22 @@ class MinecraftBot:
                     block = blocks[pointer][0]
                     block = struct.unpack('B', block)
                     block = int(block[0])
-                    #if block == 14:
-                    #    self.sendMessage ("gooooooold at X: %d, Y: %d, Z: %d"%(x, y, z))
-                    #    print ("== GOLDORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 14:
+                        print ("== GOLDORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     #if block == 15:
                     #    print ("== IRONORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     #if block == 16:
                     #    print ("== COALORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 46:
                         print ("== --TNT-- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 52:
+                        print ("== SPAWNER FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 54:
                         print ("== -CHEST- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 56:
                         print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    if block == 73 or block == 74:
+                        print ("== REDSTON FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
                     pointer += 1
                 y = payload['y']
@@ -270,7 +274,7 @@ class MinecraftBot:
     #End of onKicked
 
     def sendMessage(self, message):
-        self.protocol.send(make_packet("chat", {"message": "/msg gadjet4 " + message}))
+        self.protocol.send(make_packet("chat", {"message":  message}))
     #End of sendMessage
 #End of MinecraftBot
 

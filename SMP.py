@@ -170,7 +170,7 @@ class MinecraftBot:
         self.protocol.send(make_packet("ping"))
         self.counter += 1
 
-        if self.counter > 50:
+        if self.counter > 5:
             self.nextLoc()
             self.counter = 0
     #End of onPing
@@ -200,6 +200,10 @@ class MinecraftBot:
         pass
     #End of onIGNORED
 
+    def onSpawn(self, payload):
+        self.onLocation(payload)
+    #End of onSpawn
+    
     def onLocation(self, payload):
         payload.position.y, payload.position.stance = payload.position.stance, payload.position.y
         
@@ -298,8 +302,8 @@ class MinecraftProtocol(Protocol):
                          3: self.bot.onChat,
                          4: self.bot.onIGNORED,  # Time Updates
                          5: self.bot.onIGNORED,  # Equipment update
-                         6: self.bot.onIGNORED,  # Spawn Location Packet
-                         13: self.bot.onIGNORED, # My Location, come back later!
+                         6: self.bot.onSpawn,
+                         13: self.bot.onLocation,
                          18: self.bot.onIGNORED, # Arm Animations...
                          20: self.bot.onIGNORED, # Player Locations, come back later!
                          21: self.bot.onIGNORED, # Entities (?)

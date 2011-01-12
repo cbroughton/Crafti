@@ -1,2 +1,24 @@
-This file is over-rated
-WORK IN PROGRESS, Not even stable enough for devel
+This application is a WORK IN PROGRESS
+and is not intended to be used for
+ANYTHING, not even as a devel.
+
+If you want to help, you are
+welcome to help with converting
+the libraries twisted to above
+python 2.7 ...
+
+=======================
+INSTALLING DEPENDANCIES
+=======================
+Crafti was built and tested on
+Python 2.7 with dependancies
+all built on Python 2.7.
+
+However, the requirements are
+strictly those listed below:
+ * Python 2.6
+   * gtk (pygtk)
+   * numpy 1.5.1
+   * mechanize 0.2.4
+   * Twisted 10.2.0
+     * zope.interface 3.6.1

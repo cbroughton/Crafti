@@ -7,6 +7,8 @@ from twisted.internet import task
 from numpy import zeros
 from numpy import uint8
 
+import gtk
+
 import os
 import struct
 import sys
@@ -161,8 +163,8 @@ class MinecraftBot:
     #End of init_chunk
     
     def nextLoc(self):
-        self.location.position.x += 200
-        self.protocol.send(make_packet("location", self.location))
+        self.location.position.x += 5
+        self.protocol.send(make_packet("position", self.location))
         pass
     #End of nextLoc
     
@@ -170,9 +172,9 @@ class MinecraftBot:
         self.protocol.send(make_packet("ping"))
         self.counter += 1
 
-        if self.counter > 50:
+        if self.counter > 15:
             self.nextLoc()
-            self.counter = 0
+            self.counter = 13
     #End of onPing
     
     def onHandshake(self, payload):
@@ -267,8 +269,8 @@ class MinecraftBot:
                         print ("== -CHEST- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     if block == 56:
                         print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
-                    if block == 73 or block == 74:
-                        print ("== REDSTON FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    #if block == 73 or block == 74:
+                    #    print ("== REDSTON FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
                     pointer += 1
                 y = payload.y
@@ -400,3 +402,49 @@ if loggedIn:
 else:
     print ("CRIT:  You never successfully logged in, exiting.")
 #End of if, else
+
+
+#######################
+
+class GUI:
+    def close(self, widget):
+        gtk.main_quit()
+    
+    def __init__(self):
+        # Control Window
+        MainWindow = gtk.Window()
+        MainWindow.set_title("Crafti -- Main")
+        MainWindow.connect("destroy", self.close)
+        Main_LogToggle = gtk.Button("Hide Log")
+        Main_LogToggle.connect("clicked", self.toggleLog)
+        MainWindow.add(Main_LogToggle)
+        MainWindow.show_all()
+
+        # Logger Window
+        LogWindow = gtk.Window()
+        LogWindow.set_title("Crafti -- Logger")
+
+        # Ore Findings Window
+        OreWindow = gtk.Window()
+        OreWindow.set_title("Crafti -- Ore Finder")
+    #End of __init__
+    
+    def toggleLog(self, LogWindow):
+        if LogWindow.visible:
+            LogWindow.hide()
+            Main_LogToggle.set_label("Show Log")
+        else:
+            LogWindow.show()
+            Main_LogToggle.set_label("Hide Log")
+    #End of toggleLog
+    
+GUI()
+gtk.main()
+
+
+
+
+
+
+
+

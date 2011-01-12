@@ -153,7 +153,7 @@ class MinecraftBot:
     def __init__(self, stats):
         self.chunk_cache = {}
         self.stats = stats
-        self.delay = 0
+        self.counter = 0
     #End of __init__
 
     def init_chunk(self, x, z):
@@ -161,12 +161,18 @@ class MinecraftBot:
     #End of init_chunk
     
     def nextLoc(self):
+        self.location.position.x += 100
+        self.protocol.send(make_packet("location", self.location))
         pass
     #End of nextLoc
     
     def onPing(self, payload):
         self.protocol.send(make_packet("ping"))
-        self.nextLoc()
+        self.counter += 1
+
+        if self.counter > 50:
+            self.nextLoc()
+            self.counter = 0
     #End of onPing
     
     def onHandshake(self, payload):
@@ -198,7 +204,7 @@ class MinecraftBot:
         payload.position.y, payload.position.stance = payload.position.stance, payload.position.y
         
         self.location = payload
-        self.protocol.send(make_packet("location", payload))
+        self.protocol.send(make_packet("location", self.location))
     #End of onLocation
 
     def onPreChunk(self, payload):

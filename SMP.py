@@ -253,8 +253,8 @@ class MinecraftBot:
                     block = blocks[pointer][0]
                     block = struct.unpack('B', block)
                     block = int(block[0])
-                    if block == 14:
-                        print ("== GOLDORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    #if block == 14:
+                    #    print ("== GOLDORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     #if block == 15:
                     #    print ("== IRONORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     #if block == 16:

@@ -175,7 +175,7 @@ class MinecraftBot:
         login = mechanize.Browser()
         url = "http://www.minecraft.net/game/joinserver.jsp?user="
         url+= username + "&sessionId=" + session_id
-        url+= "&serverId=" + payload['username']
+        url+= "&serverId=" + payload.username
         login.open(url)
         
         print ("DEBUG: Sending Login Response packet.")
@@ -191,26 +191,28 @@ class MinecraftBot:
     #End of onChat
     
     def onIGNORED(self, payload):
-        self.sendMessage("/i 57 64")
         pass
     #End of onIGNORED
 
     def onLocation(self, payload):
+        payload.position.y, payload.position.stance = payload.position.stance, payload.position.y
+        
         self.location = payload
+        self.protocol.send(make_packet("location", payload))
     #End of onLocation
 
     def onPreChunk(self, payload):
-        self.init_chunk(payload['x'], payload['z'])
+        self.init_chunk(payload.x, payload.z)
     #End of onPreChunk
     
     def onBlockUpdate(self, payload):
         if ("blocks_received") not in self.stats:
             self.stats['blocks_received'] = 0
         self.stats['blocks_received'] += 1
-        x = payload['x']
-        y = payload['y']
-        z = payload['z']
-        block = payload['type']
+        x = payload.x
+        y = payload.y
+        z = payload.z
+        block = payload.type
         xChunk, localX = divmod(x, 16)
         zChunk, localZ = divmod(z, 16)
         if (xChunk, zChunk) not in self.chunk_cache:
@@ -219,19 +221,19 @@ class MinecraftBot:
     #End of onBlockUpdate
         
     def onLargeUpdate(self, payload):
-        size = (payload['x_size'] + 1) * (payload['y_size'] + 1) * (payload['z_size'] + 1)
+        size = (payload.x_size + 1) * (payload.y_size + 1) * (payload.z_size + 1)
         blocks = payload.data[:size]
         
-        x, y, z, pointer = payload['x'], payload['y'], payload['z'], 0
-        while x < payload['x'] + payload['x_size'] + 1:
+        x, y, z, pointer = payload.x, payload.y, payload.z, 0
+        while x < payload.x + payload.x_size + 1:
             x += 1
             xChunk, localX = divmod(x, 16)
-            while z < payload['z'] + payload['z_size'] + 1:
+            while z < payload.z + payload.z_size + 1:
                 z += 1
                 zChunk, localZ = divmod(z, 16)
                 if (xChunk, zChunk) not in self.chunk_cache:
                     self.init_chunk(xChunk, zChunk)
-                while y < payload['y'] + payload['y_size'] + 1:
+                while y < payload.y + payload.y_size + 1:
                     y += 1
                     if ("blocks_received") not in self.stats:
                         self.stats['blocks_received'] = 0
@@ -257,11 +259,11 @@ class MinecraftBot:
                         print ("== REDSTON FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
                     pointer += 1
-                y = payload['y']
+                y = payload.y
                 #End while y
-            z = payload['z']
+            z = payload.z
             #End while z
-        x = payload['x']
+        x = payload.x
         #End while x
     #End of onLargeUpdate
     
@@ -270,7 +272,7 @@ class MinecraftBot:
     #End of onNOTIMPLEMENTED
 
     def onKicked(self, payload):
-        print ("ERROR: You were kicked from the server.  Reason: %s"%payload['message'])
+        print ("ERROR: You were kicked from the server.  Reason: %s"%payload.message)
     #End of onKicked
 
     def sendMessage(self, message):

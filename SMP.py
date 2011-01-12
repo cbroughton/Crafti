@@ -161,7 +161,7 @@ class MinecraftBot:
     #End of init_chunk
     
     def nextLoc(self):
-        self.location.position.x += 100
+        self.location.position.x += 200
         self.protocol.send(make_packet("location", self.location))
         pass
     #End of nextLoc
@@ -170,7 +170,7 @@ class MinecraftBot:
         self.protocol.send(make_packet("ping"))
         self.counter += 1
 
-        if self.counter > 5:
+        if self.counter > 50:
             self.nextLoc()
             self.counter = 0
     #End of onPing
@@ -201,11 +201,9 @@ class MinecraftBot:
     #End of onIGNORED
 
     def onSpawn(self, payload):
-        payload.position = payload
-        payload.look.rotation = 0
-        payload.look.pitch = 0
-        payload.flying.flying = 0
-        self.onLocation(payload)
+        pass
+        #payload.position = payload
+        #self.onLocation(payload)
     #End of onSpawn
     
     def onLocation(self, payload):

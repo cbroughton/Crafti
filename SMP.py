@@ -10,10 +10,9 @@ from numpy import uint8
 
 from Tkinter import *
 
-import os
-import struct
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(sys.executable)))
+#import os
+#import sys
+#sys.path.append(os.path.abspath(os.path.dirname(sys.executable)))
 
 # Bravo Libraries (~dab755a0b118b5125e4b)
 from packets import make_packet
@@ -164,18 +163,18 @@ class MinecraftBot:
     #End of init_chunk
     
     def nextLoc(self):
-        self.location.position.x += 5
-        self.protocol.send(make_packet("position", self.location))
         pass
+        #self.location.position.x += 5
+        #self.protocol.send(make_packet("position", self.location))
     #End of nextLoc
     
     def onPing(self, payload):
         self.protocol.send(make_packet("ping"))
-        self.counter += 1
-
-        if self.counter > 15:
-            self.nextLoc()
-            self.counter = 13
+        #self.counter += 1
+        #
+        #if self.counter > 15:
+        #    self.nextLoc()
+        #    self.counter = 13
     #End of onPing
     
     def onHandshake(self, payload):
@@ -205,15 +204,14 @@ class MinecraftBot:
 
     def onSpawn(self, payload):
         pass
-        #payload.position = payload
-        #self.onLocation(payload)
     #End of onSpawn
     
     def onLocation(self, payload):
-        payload.position.y, payload.position.stance = payload.position.stance, payload.position.y
+        pass # DEBUGGING
+        #payload.position.y, payload.position.stance = payload.position.stance, payload.position.y
         
-        self.location = payload
-        self.protocol.send(make_packet("location", self.location))
+        #self.location = payload
+        #self.protocol.send(make_packet("location", self.location))
     #End of onLocation
 
     def onPreChunk(self, payload):
@@ -262,14 +260,14 @@ class MinecraftBot:
                     #    print ("== IRONORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     #if block == 16:
                     #    print ("== COALORE FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
-                    if block == 46:
-                        print ("== --TNT-- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
-                    if block == 52:
-                        print ("== SPAWNER FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
-                    if block == 54:
-                        print ("== -CHEST- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
-                    if block == 56:
-                        print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    #if block == 46:
+                    #    print ("== --TNT-- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    #if block == 52:
+                    #    print ("== SPAWNER FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    #if block == 54:
+                    #    print ("== -CHEST- FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
+                    #if block == 56:
+                    #    print ("== DIAMOND FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     #if block == 73 or block == 74:
                     #    print ("== REDSTON FOUND == X: %d, Y: %d, Z: %d"%(x, y, z))
                     self.chunk_cache[xChunk, zChunk].set_block({0: localX, 1: y, 2: localZ}, block)
@@ -334,6 +332,8 @@ class MinecraftProtocol(Protocol):
     #End of __init__
     
     def dataReceived(self, data):
+        print (" We got a packet. ") # DEBUGGING, it appeared stalled.
+        
         self.buffer += data
         if ("data_received") not in self.stats:
             self.stats['data_received'] = 0
@@ -355,6 +355,8 @@ class MinecraftProtocol(Protocol):
     #End of dataReceived
     
     def send(self, pkt):
+        print (" We sent a packet. ") # DEBUGGING, it appeared stalled.
+        
         self.transport.write(pkt)
         if ("packets_sent") not in self.stats:
             self.stats['packets_sent'] = 0
@@ -407,6 +409,10 @@ if loggedIn:
         
             self.FindOres.pack({"side": "left"})
         #End of createWidgets
+
+        def FindOres(self):
+            pass # NOT YET IMPLEMENTED
+        #End of FindOres
     
         def __init__(self, master=None):
             Frame.__init__(self, master)
@@ -415,13 +421,11 @@ if loggedIn:
         #End of __init__
     #End of GUI
 
-    root = Tk()
-    tksupport.install(root)
-    app = GUI(master=root)
+#    root = Tk()
+#    tksupport.install(root)
+#    app = GUI(master=root)
     reactor.connectTCP(server, port, Connection())
     reactor.run()
-   # app.mainloop()
-   # root.destroy()
 else:
     print ("CRIT:  You never successfully logged in, exiting.")
 #End of if, else
